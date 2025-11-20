@@ -16,7 +16,8 @@ void treefy(const char* infile = "test.root",
       outfile = infile_str.substr(0, infile_str.find_last_of(".")) + "_ttree.root";
     }
 
-    ROOT::RDataFrame df("Events", infile);
+    ROOT::RDataFrame raw_df("Events", infile);
+    ROOT::RDF::RNode df = raw_df;
 
     // Collect column names and types
     auto colNames = df.GetColumnNames();
@@ -25,6 +26,7 @@ void treefy(const char* infile = "test.root",
 
     for (auto&& col : colNames) {
         std::string colType = df.GetColumnType(col);
+        std::cout << colType << " " << col << std::endl;
         std::smatch match;
         if (std::regex_search(colType, match, class_pattern)) {
             std::string cls = match.str(0);
@@ -32,6 +34,10 @@ void treefy(const char* infile = "test.root",
                 while (!cls.empty() && cls.back() == '>') cls.pop_back();
             }
             classes.insert(cls);
+        }
+        if (colType.find("ROOT::VecOps::RVec<std::int8_t>") != std::string::npos){
+          // redefine the column to be RVec<short>
+          df = df.Redefine(col, "ROOT::VecOps::RVec<short> new_col(" + col + ".begin(), " + col + ".end()); return new_col;");
         }
     }
 
@@ -84,4 +90,19 @@ void treefy(const char* infile = "test.root",
     } else {
       df.Snapshot("t", outfile, filtered);
     }
+
+    // Filter tautau->pi pi nu nu events: 
+    // no kaon, lambda and Xi0: no status=4 particles
+    // exactly one pi+ and one pi- in final status particles
+    // no neutral pions, no short-lived particles, no kaons, eta, omega, neutrinos other than nu_tau
+    auto df_pipi = df.Filter("\
+      GenPart_status[GenPart_status==4].size()==0 && \
+      GenPart_pdgId[(GenPart_pdgId==211)&&(GenPart_status==1)].size()==1 && \
+      GenPart_pdgId[(GenPart_pdgId==-211)&&(GenPart_status==1)].size()==1 && \
+      GenPart_pdgId[\
+         (abs(GenPart_pdgId)==111) || (abs(GenPart_pdgId)==321) || (abs(GenPart_pdgId)==221) || \
+         (abs(GenPart_pdgId)==223) || (abs(GenPart_pdgId)==12) || (abs(GenPart_pdgId)==14) \
+        ].size()==0 \
+    ");
+    df_pipi.Snapshot("t", outfile.substr(0, outfile.find_last_of(".")) + "_pipi.root", filtered);
 }
