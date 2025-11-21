@@ -276,7 +276,7 @@ std::map<std::string, double> compute_thrust(const RVec<float>& px,
   double best_mag = std::sqrt(best_pair2_global);
   double T = best_mag / p_sum;
 
-  result["thrust"] = T;
+  result["thrust_Mag"] = T;
   result["thrust_x"] = best_vec_global.X() / best_mag * T;
   result["thrust_y"] = best_vec_global.Y() / best_mag * T;
   result["thrust_z"] = best_vec_global.Z() / best_mag * T;
