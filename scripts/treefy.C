@@ -22,12 +22,11 @@ std::map<std::string, double> compute_thrust(const RVec<float>& px,
 ROOT::RDF::RNode define_branches(ROOT::RDF::RNode df, std::vector<std::string>& branches);
 
 void treefy(const char* infile = "test.root",
-            std::string outfile = "",
-            int nevt = 0) {
+            bool is_signal_MC = false
+          ) {
     std::string infile_str(infile);
-    if (outfile == "") {
-      outfile = infile_str.substr(0, infile_str.find_last_of(".")) + "_ttree.root";
-    }
+    std::string outfile = infile_str.substr(0, infile_str.find_last_of(".")) + "_ttree.root";
+    int nevt = 0;
 
     ROOT::RDataFrame raw_df("Events", infile);
     ROOT::RDF::RNode df = raw_df;
@@ -116,37 +115,41 @@ void treefy(const char* infile = "test.root",
     // no kaon, lambda and Xi0: no status=4 particles
     // exactly one pi+ and one pi- in final status particles
     // no neutral pions, no short-lived particles, no kaons, eta, omega, neutrinos other than nu_tau
-    auto df_pipi = df.Filter("\
-      GenPart_status[GenPart_status==4].size()==0 && \
-      GenPart_pdgId[(GenPart_pdgId==211)&&(GenPart_status==1)].size()==1 && \
-      GenPart_pdgId[(GenPart_pdgId==-211)&&(GenPart_status==1)].size()==1 && \
-      GenPart_pdgId[\
-         (abs(GenPart_pdgId)==111) || (abs(GenPart_pdgId)==321) || (abs(GenPart_pdgId)==221) || \
-         (abs(GenPart_pdgId)==223) || (abs(GenPart_pdgId)==12) || (abs(GenPart_pdgId)==14) \
-        ].size()==0 \
-    ");
-    df_pipi.Snapshot("t", outfile.substr(0, outfile.find_last_of(".")) + "_pipi.root", filtered);
+    if (is_signal_MC) {
+      auto df_pipi = df.Filter("\
+        GenPart_status[GenPart_status==4].size()==0 && \
+        GenPart_pdgId[(GenPart_pdgId==211)&&(GenPart_status==1)].size()==1 && \
+        GenPart_pdgId[(GenPart_pdgId==-211)&&(GenPart_status==1)].size()==1 && \
+        GenPart_pdgId[\
+          (abs(GenPart_pdgId)==111) || (abs(GenPart_pdgId)==321) || (abs(GenPart_pdgId)==221) || \
+          (abs(GenPart_pdgId)==223) || (abs(GenPart_pdgId)==12) || (abs(GenPart_pdgId)==14) \
+          ].size()==0 \
+      ");
+      df_pipi.Snapshot("t", outfile.substr(0, outfile.find_last_of(".")) + "_pipi.root", filtered);
+    } else {
+      std::cout << "Not a signal MC, skipping tautau->pi pi nu nu filtering." << std::endl;
+    }
 }
 
 
 // Define new branches
 ROOT::RDF::RNode define_branches(ROOT::RDF::RNode df, std::vector<std::string>& branches) {
-  // Select particle pt > 92/2 * 0.07 GeV = 3.22 GeV, so pt^2 > 10.3684
+  // Select particle p > 92/2 * 0.07 GeV = 3.22 GeV, so pt^2 > 10.3684
   // TODO: use p_beam instead of 92/2?
   // df = df.Define("Part_isGood", "(Part_fourMomentum_fCoordinates_fX*Part_fourMomentum_fCoordinates_fX + Part_fourMomentum_fCoordinates_fY*Part_fourMomentum_fCoordinates_fY) > 10.3684");
-  df = df.Define("Part_isGood", "(Part_fourMomentum.fCoordinates.fX*Part_fourMomentum.fCoordinates.fX + Part_fourMomentum.fCoordinates.fY*Part_fourMomentum.fCoordinates.fY) > 10.3684");
-  df = df.Define("nGoodPart", "Part_isGood[Part_isGood].size()");
+  df = df.Define("Part_isGood", "(Part_fourMomentum.fCoordinates.fX*Part_fourMomentum.fCoordinates.fX + Part_fourMomentum.fCoordinates.fY*Part_fourMomentum.fCoordinates.fY + Part_fourMomentum.fCoordinates.fZ*Part_fourMomentum.fCoordinates.fZ) > 10.3684");
+  df = df.Define("nGoodPart", "(int) Part_isGood[Part_isGood].size()");
   branches.push_back("Part_isGood");
   branches.push_back("nGoodPart");
 
   // Define thrust
   df = df.Define("thrust_map", "compute_thrust(Part_fourMomentum.fCoordinates.fX, Part_fourMomentum.fCoordinates.fY, Part_fourMomentum.fCoordinates.fZ, Part_isGood, 1e-12, false)");
 
-  df = df.Define("thrust", "thrust_map[\"thrust\"]");
+  df = df.Define("thrust_Mag", "thrust_map[\"thrust_Mag\"]");
   df = df.Define("thrust_x", "thrust_map[\"thrust_x\"]");
   df = df.Define("thrust_y", "thrust_map[\"thrust_y\"]");
   df = df.Define("thrust_z", "thrust_map[\"thrust_z\"]");
-  branches.push_back("thrust");
+  branches.push_back("thrust_Mag");
   branches.push_back("thrust_x");
   branches.push_back("thrust_y");
   branches.push_back("thrust_z");
@@ -164,7 +167,7 @@ std::map<std::string, double> compute_thrust(const RVec<float>& px,
                                           bool include_met = false){
   
   std::map<std::string, double> result;
-  result["thrust"] = 0.0;
+  result["thrust_Mag"] = 0.0;
   result["thrust_x"] = 0.0;
   result["thrust_y"] = 0.0;
   result["thrust_z"] = 0.0;
