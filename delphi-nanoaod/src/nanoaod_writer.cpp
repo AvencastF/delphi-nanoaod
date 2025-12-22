@@ -564,8 +564,8 @@ void NanoAODWriter::fillTrac()
 
     for (int i = sk::LVPART; i <= sk::NVECP; i++)
     {
-        if (int(sk::VECP(7, i)) != 0)
-        {
+        // if (int(sk::VECP(7, i)) != 0)
+        // {
             Trac_partIdx_->push_back(i - 1);
             Trac_originVtxIdx_->push_back(sk::KTRAC(1, i) - 1);
             Trac_decayVtxIdx_->push_back(sk::KTRAC(2, i) - 1);
@@ -589,7 +589,7 @@ void NanoAODWriter::fillTrac()
             Trac_impParToVertexZ_->push_back(sk::QTRAC(39, i));
             Trac_impParToBeamSpotRPhi_->push_back(sk::QTRAC(40, i));
             Trac_chi2VDHits_->push_back(sk::QTRAC(42, i));
-        }
+        // }
     }
 }
 
@@ -610,14 +610,13 @@ void NanoAODWriter::fillMuid()
 
     for (int i = sk::LVPART; i <= sk::NVECP; i++)
       {
-
-        if (sk::KMUID(1, i) != 0)
-        {
+        // if (sk::KMUID(1, i) != 0)
+        // {
             Muid_partIdx_->push_back(i - 1);
             Muid_tag_->push_back(sk::KMUID(1, i));
             Muid_looseChi2_->push_back(sk::QMUID(2, i));
             Muid_hitPattern_->push_back(sk::KMUID(3, i));
-        }
+        // }
     }
 }
 
@@ -641,16 +640,15 @@ void NanoAODWriter::fillElid()
     Elid_pz_->clear();
     for (int i = sk::LVPART; i <= sk::NVECP; i++)
     {
-        if (sk::KELID(1, i) != 0)
-        {
-
+        // if (sk::KELID(1, i) != 0)
+        // {
             Elid_partIdx_->push_back(i - 1);
             Elid_tag_->push_back(sk::KELID(1, i));
             Elid_gammaConversion_->push_back(sk::KELID(2, i));
             Elid_px_->push_back(sk::QELID(3, i));
             Elid_py_->push_back(sk::QELID(4, i));
             Elid_pz_->push_back(sk::QELID(5, i));
-        }
+        // }
     }
 }
 
@@ -799,8 +797,8 @@ void NanoAODWriter::fillHadid()
 
     for (int i = sk::LVPART; i <= sk::NVECP; ++i)
     {
-        if (int(sk::VECP(7, i)) != 0)
-        {
+        // if (int(sk::VECP(7, i)) != 0)
+        // {
             Haid_sign_->push_back(sk::KHAID(1, i));
             Haid_kaonDedx_->push_back(sk::KHAID(2, i));
             Haid_protonDedx_->push_back(sk::KHAID(3, i));
@@ -859,7 +857,7 @@ void NanoAODWriter::fillHadid()
             Rich_nphl_->push_back(sk::NPHL(i));
             Rich_nepl_->push_back(sk::NEPL(i));
             Rich_flagl_->push_back(sk::FLAGL(i));
-        }
+        // }
     }
 }
 
