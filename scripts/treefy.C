@@ -16,14 +16,25 @@ using Vec3 = ROOT::Math::XYZVector;
 std::map<std::string, double> compute_thrust(const RVec<float>& px,
                                           const RVec<float>& py,
                                           const RVec<float>& pz,
-                                          const RVec<bool>& flag_valid,
+                                          const RVec<int>& flag_valid,
                                           double eps,
                                           bool include_met);
 ROOT::RDF::RNode define_branches(ROOT::RDF::RNode df, std::vector<std::string>& branches);
+int categorize_tau_decay(const RVec<short>& decay_products_pdgId, int idx_start, int idx_end);
+int categorize_event(const RVec<short>& truth_pdgId);
 
-void treefy(const char* infile = "test.root",
-            bool is_signal_MC = false
-          ) {
+// enum for tau truth decay categories
+// Event truth category = 10*tau_plust_cat + tau_minus_cat
+enum TauDecayCategory {
+  NotTau = 0,
+  SinglePi = 1,
+  Rho = 2,
+  Lep = 3,
+  Others = 4,
+};
+ 
+
+void treefy(const char* infile = "test.root") {
     std::string infile_str(infile);
     std::string outfile = infile_str.substr(0, infile_str.find_last_of(".")) + "_ttree.root";
     int nevt = 0;
@@ -110,40 +121,34 @@ void treefy(const char* infile = "test.root",
     } else {
       df.Snapshot("t", outfile, filtered);
     }
-
-    // Filter tautau->pi pi nu nu events: 
-    // no kaon, lambda and Xi0: no status=4 particles
-    // exactly one pi+ and one pi- in final status particles
-    // no neutral pions, no short-lived particles, no kaons, eta, omega, neutrinos other than nu_tau
-    if (is_signal_MC) {
-      auto df_pipi = df.Filter("\
-        GenPart_status[GenPart_status==4].size()==0 && \
-        GenPart_pdgId[(GenPart_pdgId==211)&&(GenPart_status==1)].size()==1 && \
-        GenPart_pdgId[(GenPart_pdgId==-211)&&(GenPart_status==1)].size()==1 && \
-        GenPart_pdgId[\
-          (abs(GenPart_pdgId)==111) || (abs(GenPart_pdgId)==321) || (abs(GenPart_pdgId)==221) || \
-          (abs(GenPart_pdgId)==223) || (abs(GenPart_pdgId)==12) || (abs(GenPart_pdgId)==14) \
-          ].size()==0 \
-      ");
-      df_pipi.Snapshot("t", outfile.substr(0, outfile.find_last_of(".")) + "_pipi.root", filtered);
-    } else {
-      std::cout << "Not a signal MC, skipping tautau->pi pi nu nu filtering." << std::endl;
-    }
 }
 
 
 // Define new branches
 ROOT::RDF::RNode define_branches(ROOT::RDF::RNode df, std::vector<std::string>& branches) {
-  // Select particle p > 92/2 * 0.07 GeV = 3.22 GeV, so pt^2 > 10.3684
+  // Define event category based on tau decay modes
+  df = df.Define("event_category", categorize_event, {"GenPart_pdgId"});
+  branches.push_back("event_category");
+  // Select particle p > 92/2 * 0.07 GeV = 3.22 GeV, so pt^2 > 10.3684 && |cos(theta)| > 0.035 (boundary region of TPC)
   // TODO: use p_beam instead of 92/2?
-  // df = df.Define("Part_isGood", "(Part_fourMomentum_fCoordinates_fX*Part_fourMomentum_fCoordinates_fX + Part_fourMomentum_fCoordinates_fY*Part_fourMomentum_fCoordinates_fY) > 10.3684");
-  df = df.Define("Part_isGood", "(Part_fourMomentum.fCoordinates.fX*Part_fourMomentum.fCoordinates.fX + Part_fourMomentum.fCoordinates.fY*Part_fourMomentum.fCoordinates.fY + Part_fourMomentum.fCoordinates.fZ*Part_fourMomentum.fCoordinates.fZ) > 10.3684");
+  df = df.Define("Part_isGood", "((Part_fourMomentum.fCoordinates.fX*Part_fourMomentum.fCoordinates.fX + Part_fourMomentum.fCoordinates.fY*Part_fourMomentum.fCoordinates.fY + Part_fourMomentum.fCoordinates.fZ*Part_fourMomentum.fCoordinates.fZ) > 10.3684) && (abs(Part_fourMomentum.fCoordinates.fZ / sqrt(Part_fourMomentum.fCoordinates.fX*Part_fourMomentum.fCoordinates.fX + Part_fourMomentum.fCoordinates.fY*Part_fourMomentum.fCoordinates.fY + Part_fourMomentum.fCoordinates.fZ*Part_fourMomentum.fCoordinates.fZ)) > 0.035)");
   df = df.Define("nGoodPart", "(int) Part_isGood[Part_isGood].size()");
   branches.push_back("Part_isGood");
   branches.push_back("nGoodPart");
 
   // Define thrust
-  df = df.Define("thrust_map", "compute_thrust(Part_fourMomentum.fCoordinates.fX, Part_fourMomentum.fCoordinates.fY, Part_fourMomentum.fCoordinates.fZ, Part_isGood, 1e-12, false)");
+  df = df.Define("thrust_map",
+                  [](const RVec<float>& px,
+                     const RVec<float>& py,
+                     const RVec<float>& pz,
+                     const RVec<int>& flag_valid) {
+                    return compute_thrust(px, py, pz, flag_valid, 1e-12, false);
+                  },
+                  {"Part_fourMomentum.fCoordinates.fX",
+                   "Part_fourMomentum.fCoordinates.fY",
+                   "Part_fourMomentum.fCoordinates.fZ",
+                   "Part_isGood"}
+                );
 
   df = df.Define("thrust_Mag", "thrust_map[\"thrust_Mag\"]");
   df = df.Define("thrust_x", "thrust_map[\"thrust_x\"]");
@@ -162,7 +167,7 @@ ROOT::RDF::RNode define_branches(ROOT::RDF::RNode df, std::vector<std::string>& 
 std::map<std::string, double> compute_thrust(const RVec<float>& px,
                                           const RVec<float>& py,
                                           const RVec<float>& pz,
-                                          const RVec<bool>& flag_valid,
+                                          const RVec<int>& flag_valid,
                                           double eps = 1e-12,
                                           bool include_met = false){
   
@@ -284,4 +289,87 @@ std::map<std::string, double> compute_thrust(const RVec<float>& px,
   result["thrust_y"] = best_vec_global.Y() / best_mag * T;
   result["thrust_z"] = best_vec_global.Z() / best_mag * T;
   return result;
+}
+
+
+int categorize_tau_decay(const RVec<short>& decay_products_pdgId, int idx_start, int idx_end) {
+  int n_charged_pions = 0;
+  int n_neutral_pions = 0;
+  int n_leptons = 0;
+  for (int i = idx_start; i < idx_end; ++i) {
+    int pdgId = decay_products_pdgId[i];
+    if (pdgId == 211 || pdgId == -211) {
+      n_charged_pions++;
+    } else if (pdgId == 111) {
+      n_neutral_pions++;
+    } else if (abs(pdgId) == 11 || abs(pdgId) == 13) {
+      n_leptons++;
+    }
+  }
+  if (n_charged_pions == 1 && n_neutral_pions == 0 && n_leptons == 0) {
+    return TauDecayCategory::SinglePi;
+  } else if (n_charged_pions == 1 && n_neutral_pions == 1 && n_leptons == 0) {
+    return TauDecayCategory::Rho;
+  } else if (n_leptons == 1 && n_charged_pions == 0) {
+    return TauDecayCategory::Lep;
+  } else {
+    return TauDecayCategory::Others;
+  }
+}
+
+int categorize_event(const RVec<short>& truth_pdgId) {
+  int event_category = 0;
+  // truth_pdgId is distributed as: x,x,...,15,...,-15,(22),16,Products of tau-,-16,Products of tau+
+  // Find tau+ and tau-
+  int num_tau_plus = 0, num_tau_minus = 0;
+  int idx_start_tau_minus = -1, idx_end_tau_minus = -1, idx_start_tau_plus = -1, idx_end_tau_plus = -1;
+  for (size_t i = 0; i < truth_pdgId.size(); ++i) {
+    if (truth_pdgId[i] == 15) num_tau_minus++;
+    else if (truth_pdgId[i] == -15) num_tau_plus++;
+
+    // Find indices of tau decay products if both taus are found
+    if (abs(truth_pdgId[i]) == 16 && (num_tau_minus>0) && (num_tau_plus>0)) {
+      for (size_t j = i+1; j < truth_pdgId.size(); ++j) {
+        if (abs(truth_pdgId[j]) == 16) {
+          if (truth_pdgId[j] == 16) {
+            idx_start_tau_plus = i;
+            idx_end_tau_plus = j;
+            idx_start_tau_minus = j;
+            idx_end_tau_minus = truth_pdgId.size();
+          } else if (truth_pdgId[j] == -16) {
+            idx_start_tau_minus = i;
+            idx_end_tau_minus = j;
+            idx_start_tau_plus = j;
+            idx_end_tau_plus = truth_pdgId.size();
+          }
+          break;
+        }
+      }
+      break;
+    }
+  }
+
+  if (num_tau_plus > 0 && num_tau_minus > 0 &&
+      idx_start_tau_minus != -1 && idx_end_tau_minus != -1 &&
+      idx_start_tau_plus != -1 && idx_end_tau_plus != -1) {
+    int tau_minus_cat = categorize_tau_decay(truth_pdgId, idx_start_tau_minus, idx_end_tau_minus);
+    int tau_plus_cat = categorize_tau_decay(truth_pdgId, idx_start_tau_plus, idx_end_tau_plus);
+    event_category = 10 * tau_plus_cat + tau_minus_cat;
+  } else {
+    event_category = 0; // Not tau
+  }
+  return event_category;
+}
+
+int main(int argc, char** argv) {
+  const char* infile = "test.root";
+  // bool is_signal_MC = false;
+
+  if (argc > 1) {
+    infile = argv[1];
+  }
+
+  treefy(infile);
+
+  return 0;
 }
