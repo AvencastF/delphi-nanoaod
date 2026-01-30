@@ -19,7 +19,7 @@ std::map<std::string, double> compute_thrust(const RVec<float>& px,
                                           const RVec<int>& flag_valid,
                                           double eps,
                                           bool include_met);
-ROOT::RDF::RNode define_branches(ROOT::RDF::RNode df, std::vector<std::string>& branches);
+ROOT::RDF::RNode define_branches(ROOT::RDF::RNode df, std::vector<std::string>& branches, bool is_data);
 int categorize_tau_decay(const RVec<short>& decay_products_pdgId, int idx_start, int idx_end);
 int categorize_event(const RVec<short>& truth_pdgId);
 
@@ -48,26 +48,28 @@ void treefy(const char* infile = "test.root") {
     std::regex class_pattern(R"(ROOT::[^\n]+)");
 
     // Inspect column types and collect needed classes
+    bool is_data = true;
     for (auto&& col : colNames) {
-        std::string colType = df.GetColumnType(col);
-        std::cout << colType << " " << col << std::endl;
-        std::smatch match;
-        if (std::regex_search(colType, match, class_pattern)) {
-            std::string cls = match.str(0);
-            if (std::count(cls.begin(), cls.end(), '<') != std::count(cls.begin(), cls.end(), '>')) {
-                while (!cls.empty() && cls.back() == '>') cls.pop_back();
-            }
-            classes.insert(cls);
-        }
-        if (colType.find("ROOT::VecOps::RVec<std::int8_t>") != std::string::npos){
-          // redefine the column to be RVec<short>
-          df = df.Redefine(col, "ROOT::VecOps::RVec<short> new_col(" + col + ".begin(), " + col + ".end()); return new_col;");
-        }
+      if (col.find("GenPart")!=std::string::npos) is_data = false;
+      std::string colType = df.GetColumnType(col);
+      std::cout << colType << " " << col << std::endl;
+      std::smatch match;
+      if (std::regex_search(colType, match, class_pattern)) {
+          std::string cls = match.str(0);
+          if (std::count(cls.begin(), cls.end(), '<') != std::count(cls.begin(), cls.end(), '>')) {
+              while (!cls.empty() && cls.back() == '>') cls.pop_back();
+          }
+          classes.insert(cls);
+      }
+      if (colType.find("ROOT::VecOps::RVec<std::int8_t>") != std::string::npos){
+        // redefine the column to be RVec<short>
+        df = df.Redefine(col, "ROOT::VecOps::RVec<short> new_col(" + col + ".begin(), " + col + ".end()); return new_col;");
+      }
     }
 
     // Define new branches
     std::vector<std::string> new_branches;
-    df = define_branches(df, new_branches);
+    df = define_branches(df, new_branches, is_data);
     for (const auto& nb : new_branches) {
       colNames.push_back(nb);
     }
@@ -125,9 +127,13 @@ void treefy(const char* infile = "test.root") {
 
 
 // Define new branches
-ROOT::RDF::RNode define_branches(ROOT::RDF::RNode df, std::vector<std::string>& branches) {
+ROOT::RDF::RNode define_branches(ROOT::RDF::RNode df, std::vector<std::string>& branches, bool is_data) {
   // Define event category based on tau decay modes
-  df = df.Define("event_category", categorize_event, {"GenPart_pdgId"});
+  if (is_data){
+    df = df.Define("event_category", "-1.");
+  } else {
+    df = df.Define("event_category", categorize_event, {"GenPart_pdgId"});
+  }
   branches.push_back("event_category");
   // Select particle p > 92/2 * 0.07 GeV = 3.22 GeV, so pt^2 > 10.3684 && |cos(theta)| > 0.035 (boundary region of TPC)
   // TODO: use p_beam instead of 92/2?
