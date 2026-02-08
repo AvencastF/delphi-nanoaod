@@ -14,6 +14,7 @@
 #include "skelana/psctbl.hpp"
 #include "skelana/psctra.hpp"
 #include "skelana/pscmud.hpp"
+#include "skelana/pscelo.hpp"
 #include "skelana/psceld.hpp"
 #include "skelana/pschad.hpp"
 #include "skelana/pschdn.hpp"

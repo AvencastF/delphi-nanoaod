@@ -286,6 +286,28 @@ void NanoAODWriter::definePart(std::unique_ptr<RNTupleModel> &model)
     MakeField(model, "Part_vtxCode", "Vertex code", Part_vtxCode_);
     MakeField(model, "Part_vtxIdx", "Vertex index", Part_vtxIdx_);
     MakeField(model, "Part_lock", "Particle lock", Part_lock_);
+    MakeField(model, "Part_hpcShowerEnergy", "QHPC(1): energy of the most energetic HPC shower", Part_hpcShowerEnergy_);
+    MakeField(model, "Part_hpcShowerTheta", "QHPC(2): theta of the most energetic HPC shower", Part_hpcShowerTheta_);
+    MakeField(model, "Part_hpcShowerPhi", "QHPC(3): phi of the most energetic HPC shower", Part_hpcShowerPhi_);
+    MakeField(model, "Part_hpcParticleCode", "KHPC(4): particle identification code for the HPC shower", Part_hpcParticleCode_);
+    MakeField(model, "Part_hpcNumLayers", "KHPC(5): number of HPC layers", Part_hpcNumLayers_);
+    MakeField(model, "Part_hpcLayerHitPattern", "KHPC(6): HPC layer hit pattern", Part_hpcLayerHitPattern_);
+    MakeField(model, "Part_hpcNumAssociatedShowers", "KHPC(7): number of associated HPC showers", Part_hpcNumAssociatedShowers_);
+    MakeField(model, "Part_hpcTotalShowerEnergy", "QHPC(8): total HPC shower energy", Part_hpcTotalShowerEnergy_);
+    MakeField(model, "Part_hacShowerEnergy", "QHAC(1): energy of the most energetic HAC shower", Part_hacShowerEnergy_);
+    MakeField(model, "Part_hacShowerTheta", "QHAC(2): theta of the most energetic HAC shower", Part_hacShowerTheta_);
+    MakeField(model, "Part_hacShowerPhi", "QHAC(3): phi of the most energetic HAC shower", Part_hacShowerPhi_);
+    MakeField(model, "Part_hacParticleCode", "KHAC(4): particle identification code for the HAC shower", Part_hacParticleCode_);
+    MakeField(model, "Part_hacNumTowers", "KHAC(5): number of HAC towers", Part_hacNumTowers_);
+    MakeField(model, "Part_hacTowerHitPattern", "KHAC(6): HAC tower hit pattern", Part_hacTowerHitPattern_);
+    MakeField(model, "Part_hacNumAssociatedShowers", "KHAC(7): number of associated HAC showers", Part_hacNumAssociatedShowers_);
+    MakeField(model, "Part_hacTotalShowerEnergy", "QHAC(8): total HAC shower energy", Part_hacTotalShowerEnergy_);
+    MakeField(model, "Part_sticShowerEnergy", "QSTIC(1): STIC shower energy", Part_sticShowerEnergy_);
+    MakeField(model, "Part_sticShowerTheta", "QSTIC(2): STIC shower theta", Part_sticShowerTheta_);
+    MakeField(model, "Part_sticShowerPhi", "QSTIC(3): STIC shower phi", Part_sticShowerPhi_);
+    MakeField(model, "Part_sticNumTowers", "KSTIC(4): number of STIC towers in the shower", Part_sticNumTowers_);
+    MakeField(model, "Part_sticChargedTag", "KSTIC(5): charged tag from the STIC veto", Part_sticChargedTag_);
+    MakeField(model, "Part_sticSiliconVertexPos", "KSTIC(6): STIC silicon strip vertex position", Part_sticSiliconVertexPos_);
 
     if (mc_ && sk::IFLSIM > 0)
     {
@@ -316,6 +338,50 @@ void NanoAODWriter::fillPart()
                { return sk::IVECP(10, i) % 10 - 1; });
     fillVector(Part_lock_, sk::LVPART, sk::NVECP, [](int i)
                { return sk::LVLOCK(i); });
+    fillVector(Part_hpcShowerEnergy_, sk::LVPART, sk::NVECP, [](int i)
+               { return sk::QHPC(1, i); });
+    fillVector(Part_hpcShowerTheta_, sk::LVPART, sk::NVECP, [](int i)
+               { return sk::QHPC(2, i); });
+    fillVector(Part_hpcShowerPhi_, sk::LVPART, sk::NVECP, [](int i)
+               { return sk::QHPC(3, i); });
+    fillVector(Part_hpcParticleCode_, sk::LVPART, sk::NVECP, [](int i)
+               { return sk::KHPC(4, i); });
+    fillVector(Part_hpcNumLayers_, sk::LVPART, sk::NVECP, [](int i)
+               { return sk::KHPC(5, i); });
+    fillVector(Part_hpcLayerHitPattern_, sk::LVPART, sk::NVECP, [](int i)
+               { return sk::KHPC(6, i); });
+    fillVector(Part_hpcNumAssociatedShowers_, sk::LVPART, sk::NVECP, [](int i)
+               { return sk::KHPC(7, i); });
+    fillVector(Part_hpcTotalShowerEnergy_, sk::LVPART, sk::NVECP, [](int i)
+               { return sk::QHPC(8, i); });
+    fillVector(Part_hacShowerEnergy_, sk::LVPART, sk::NVECP, [](int i)
+               { return sk::QHAC(1, i); });
+    fillVector(Part_hacShowerTheta_, sk::LVPART, sk::NVECP, [](int i)
+               { return sk::QHAC(2, i); });
+    fillVector(Part_hacShowerPhi_, sk::LVPART, sk::NVECP, [](int i)
+               { return sk::QHAC(3, i); });
+    fillVector(Part_hacParticleCode_, sk::LVPART, sk::NVECP, [](int i)
+               { return sk::KHAC(4, i); });
+    fillVector(Part_hacNumTowers_, sk::LVPART, sk::NVECP, [](int i)
+               { return sk::KHAC(5, i); });
+    fillVector(Part_hacTowerHitPattern_, sk::LVPART, sk::NVECP, [](int i)
+               { return sk::KHAC(6, i); });
+    fillVector(Part_hacNumAssociatedShowers_, sk::LVPART, sk::NVECP, [](int i)
+               { return sk::KHAC(7, i); });
+    fillVector(Part_hacTotalShowerEnergy_, sk::LVPART, sk::NVECP, [](int i)
+               { return sk::QHAC(8, i); });
+    fillVector(Part_sticShowerEnergy_, sk::LVPART, sk::NVECP, [](int i)
+               { return sk::QSTIC(1, i); });
+    fillVector(Part_sticShowerTheta_, sk::LVPART, sk::NVECP, [](int i)
+               { return sk::QSTIC(2, i); });
+    fillVector(Part_sticShowerPhi_, sk::LVPART, sk::NVECP, [](int i)
+               { return sk::QSTIC(3, i); });
+    fillVector(Part_sticNumTowers_, sk::LVPART, sk::NVECP, [](int i)
+               { return sk::KSTIC(4, i); });
+    fillVector(Part_sticChargedTag_, sk::LVPART, sk::NVECP, [](int i)
+               { return sk::KSTIC(5, i); });
+    fillVector(Part_sticSiliconVertexPos_, sk::LVPART, sk::NVECP, [](int i)
+               { return sk::KSTIC(6, i); });
 
     if (mc_ && sk::IFLSIM > 0)
     {
@@ -530,6 +596,8 @@ void NanoAODWriter::defineTrac(std::unique_ptr<RNTupleModel> &model)
     MakeField(model, "Trac_errorResRPhiFirstPoint", "Error on residual RPhi to first point", Trac_errorResRPhiFirstPoint_);
     MakeField(model, "Trac_resZFirstPoint", "Residual in Z to first point", Trac_resZFirstPoint_);
     MakeField(model, "Trac_errorResZFirstPoint", "Error on residual Z to first point", Trac_errorResZFirstPoint_);
+    MakeField(model, "Trac_impParRPhi", "QTRAC(4): impact parameter in RPhi at perigee", Trac_impParRPhi_);
+    MakeField(model, "Trac_impParZ", "QTRAC(5): impact parameter in Z at perigee", Trac_impParZ_);
     MakeField(model, "Trac_impParToVertexRPhi", "Impact parameter to vertex in RPhi (geometric sign)", Trac_impParToVertexRPhi_);
     MakeField(model, "Trac_impParToVertexZ", "Impact parameter to vertex in Z (geometric sign)", Trac_impParToVertexZ_);
     MakeField(model, "Trac_impParToBeamSpotRPhi", "Impact parameter to beam spot in RPhi (geometric sign)", Trac_impParToBeamSpotRPhi_);
@@ -557,6 +625,8 @@ void NanoAODWriter::fillTrac()
     Trac_errorResRPhiFirstPoint_->clear();
     Trac_resZFirstPoint_->clear();
     Trac_errorResZFirstPoint_->clear();
+    Trac_impParRPhi_->clear();
+    Trac_impParZ_->clear();
     Trac_impParToVertexZ_->clear();
     Trac_impParToVertexRPhi_->clear();
     Trac_impParToBeamSpotRPhi_->clear();
@@ -585,6 +655,8 @@ void NanoAODWriter::fillTrac()
             Trac_errorResRPhiFirstPoint_->push_back(sk::QTRAC(35, i));
             Trac_resZFirstPoint_->push_back(sk::QTRAC(36, i));
             Trac_errorResZFirstPoint_->push_back(sk::QTRAC(37, i));
+            Trac_impParRPhi_->push_back(sk::QTRAC(4, i));
+            Trac_impParZ_->push_back(sk::QTRAC(5, i));
             Trac_impParToVertexRPhi_->push_back(sk::QTRAC(38, i));
             Trac_impParToVertexZ_->push_back(sk::QTRAC(39, i));
             Trac_impParToBeamSpotRPhi_->push_back(sk::QTRAC(40, i));
@@ -628,6 +700,20 @@ void NanoAODWriter::defineElid(std::unique_ptr<RNTupleModel> &model)
     MakeField(model, "Elid_px", "Best electron px estimation", Elid_px_);
     MakeField(model, "Elid_py", "Best electron py estimation", Elid_py_);
     MakeField(model, "Elid_pz", "Best electron pz estimation", Elid_pz_);
+    MakeField(model, "Elou_eOverP", "QELOU(1): E_shower/P_track", Elou_eOverP_);
+    MakeField(model, "Elou_deltaZHpc", "QELOU(2): Z(extrapolation)-Z(HPC)", Elou_deltaZHpc_);
+    MakeField(model, "Elou_deltaPhiDirectionHpc", "QELOU(3): phi direction mismatch to HPC", Elou_deltaPhiDirectionHpc_);
+    MakeField(model, "Elou_deltaPhiPositionHpc", "QELOU(4): phi position mismatch to HPC", Elou_deltaPhiPositionHpc_);
+    MakeField(model, "Elou_dedxMeasurement", "QELOU(5): dE/dX measurement", Elou_dedxMeasurement_);
+    MakeField(model, "Elou_dedxMeasurementError", "QELOU(6): error on dE/dX measurement", Elou_dedxMeasurementError_);
+    MakeField(model, "Elou_dedxNumTpcWires", "QELOU(7): number of TPC wires from dE/dX", Elou_dedxNumTpcWires_);
+    MakeField(model, "Elou_probFromEOverP", "QELOU(8): probability from E/P", Elou_probFromEOverP_);
+    MakeField(model, "Elou_probFromShowerFit", "QELOU(9): probability from shower fit", Elou_probFromShowerFit_);
+    MakeField(model, "Elou_probFromDeltaZHpc", "QELOU(10): probability from Z(TPC)-Z(HPC)", Elou_probFromDeltaZHpc_);
+    MakeField(model, "Elou_probFromDeltaPhiDirectionHpc", "QELOU(11): probability from phi direction mismatch", Elou_probFromDeltaPhiDirectionHpc_);
+    MakeField(model, "Elou_probFromDedxElectron", "QELOU(12): probability from dE/dX for electron", Elou_probFromDedxElectron_);
+    MakeField(model, "Elou_probFromDedxPion", "QELOU(13): probability from dE/dX for pion", Elou_probFromDedxPion_);
+    MakeField(model, "Elou_hpcElectronProbability", "QELOU(14): electron probability from HPC", Elou_hpcElectronProbability_);
 }
 
 void NanoAODWriter::fillElid()
@@ -638,6 +724,20 @@ void NanoAODWriter::fillElid()
     Elid_px_->clear();
     Elid_py_->clear();
     Elid_pz_->clear();
+    Elou_eOverP_->clear();
+    Elou_deltaZHpc_->clear();
+    Elou_deltaPhiDirectionHpc_->clear();
+    Elou_deltaPhiPositionHpc_->clear();
+    Elou_dedxMeasurement_->clear();
+    Elou_dedxMeasurementError_->clear();
+    Elou_dedxNumTpcWires_->clear();
+    Elou_probFromEOverP_->clear();
+    Elou_probFromShowerFit_->clear();
+    Elou_probFromDeltaZHpc_->clear();
+    Elou_probFromDeltaPhiDirectionHpc_->clear();
+    Elou_probFromDedxElectron_->clear();
+    Elou_probFromDedxPion_->clear();
+    Elou_hpcElectronProbability_->clear();
     for (int i = sk::LVPART; i <= sk::NVECP; i++)
     {
         // if (sk::KELID(1, i) != 0)
@@ -648,6 +748,20 @@ void NanoAODWriter::fillElid()
             Elid_px_->push_back(sk::QELID(3, i));
             Elid_py_->push_back(sk::QELID(4, i));
             Elid_pz_->push_back(sk::QELID(5, i));
+            Elou_eOverP_->push_back(sk::QELOU(1, i));
+            Elou_deltaZHpc_->push_back(sk::QELOU(2, i));
+            Elou_deltaPhiDirectionHpc_->push_back(sk::QELOU(3, i));
+            Elou_deltaPhiPositionHpc_->push_back(sk::QELOU(4, i));
+            Elou_dedxMeasurement_->push_back(sk::QELOU(5, i));
+            Elou_dedxMeasurementError_->push_back(sk::QELOU(6, i));
+            Elou_dedxNumTpcWires_->push_back(sk::QELOU(7, i));
+            Elou_probFromEOverP_->push_back(sk::QELOU(8, i));
+            Elou_probFromShowerFit_->push_back(sk::QELOU(9, i));
+            Elou_probFromDeltaZHpc_->push_back(sk::QELOU(10, i));
+            Elou_probFromDeltaPhiDirectionHpc_->push_back(sk::QELOU(11, i));
+            Elou_probFromDedxElectron_->push_back(sk::QELOU(12, i));
+            Elou_probFromDedxPion_->push_back(sk::QELOU(13, i));
+            Elou_hpcElectronProbability_->push_back(sk::QELOU(14, i));
         // }
     }
 }
