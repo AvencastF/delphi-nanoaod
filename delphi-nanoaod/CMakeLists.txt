@@ -1,5 +1,5 @@
 set (CMAKE_CXX_STANDARD 17)
-set (FASTJETDIR /afs/cern.ch/work/c/cmcginn/public/Fastjet/fastjet-install)
+set (FASTJETDIR /opt/fastjet)
 
 configure_file(src/skelana.cra.in skelana.cra)
 ypatchy(skelana.f ${CMAKE_CURRENT_BINARY_DIR}/skelana.cra)
