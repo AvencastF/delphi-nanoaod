@@ -29,8 +29,10 @@ enum TauDecayCategory {
   NotTau = 0,
   SinglePi = 1,
   Rho = 2,
-  Lep = 3,
-  Others = 4,
+  // Lep = 3,
+  El = 3,
+  Mu = 4,
+  Others = 5,
 };
  
 
@@ -137,8 +139,10 @@ ROOT::RDF::RNode define_branches(ROOT::RDF::RNode df, std::vector<std::string>& 
   branches.push_back("event_category");
   // Select particle p > 92/2 * 0.07 GeV = 3.22 GeV, so pt^2 > 10.3684 && |cos(theta)| > 0.035 (boundary region of TPC)
   // TODO: use p_beam instead of 92/2?
-  df = df.Define("Part_isGood", "((Part_fourMomentum.fCoordinates.fX*Part_fourMomentum.fCoordinates.fX + Part_fourMomentum.fCoordinates.fY*Part_fourMomentum.fCoordinates.fY + Part_fourMomentum.fCoordinates.fZ*Part_fourMomentum.fCoordinates.fZ) > 10.3684) && (abs(Part_fourMomentum.fCoordinates.fZ / sqrt(Part_fourMomentum.fCoordinates.fX*Part_fourMomentum.fCoordinates.fX + Part_fourMomentum.fCoordinates.fY*Part_fourMomentum.fCoordinates.fY + Part_fourMomentum.fCoordinates.fZ*Part_fourMomentum.fCoordinates.fZ)) > 0.035)");
+  // df = df.Define("Part_isGood", "((Part_fourMomentum.fCoordinates.fX*Part_fourMomentum.fCoordinates.fX + Part_fourMomentum.fCoordinates.fY*Part_fourMomentum.fCoordinates.fY + Part_fourMomentum.fCoordinates.fZ*Part_fourMomentum.fCoordinates.fZ) > 10.3684) && (abs(Part_fourMomentum.fCoordinates.fZ / sqrt(Part_fourMomentum.fCoordinates.fX*Part_fourMomentum.fCoordinates.fX + Part_fourMomentum.fCoordinates.fY*Part_fourMomentum.fCoordinates.fY + Part_fourMomentum.fCoordinates.fZ*Part_fourMomentum.fCoordinates.fZ)) > 0.035)");
+  df = df.Define("Part_isGood", "Part_lock == 0");
   df = df.Define("nGoodPart", "(int) Part_isGood[Part_isGood].size()");
+  df = df.Define("Part_thrust_calc_flag", "(Part_charge != 0) & (Part_isGood)");
   branches.push_back("Part_isGood");
   branches.push_back("nGoodPart");
 
@@ -153,7 +157,7 @@ ROOT::RDF::RNode define_branches(ROOT::RDF::RNode df, std::vector<std::string>& 
                   {"Part_fourMomentum.fCoordinates.fX",
                    "Part_fourMomentum.fCoordinates.fY",
                    "Part_fourMomentum.fCoordinates.fZ",
-                   "Part_isGood"}
+                   "Part_thrust_calc_flag"}
                 );
 
   df = df.Define("thrust_Mag", "thrust_map[\"thrust_Mag\"]");
@@ -301,23 +305,33 @@ std::map<std::string, double> compute_thrust(const RVec<float>& px,
 int categorize_tau_decay(const RVec<short>& decay_products_pdgId, int idx_start, int idx_end) {
   int n_charged_pions = 0;
   int n_neutral_pions = 0;
-  int n_leptons = 0;
+  // int n_leptons = 0;
+  int n_el = 0;
+  int n_mu = 0;
+  int n_kaons = 0;
+
   for (int i = idx_start; i < idx_end; ++i) {
     int pdgId = decay_products_pdgId[i];
     if (pdgId == 211 || pdgId == -211) {
       n_charged_pions++;
     } else if (pdgId == 111) {
       n_neutral_pions++;
-    } else if (abs(pdgId) == 11 || abs(pdgId) == 13) {
-      n_leptons++;
+    } else if (abs(pdgId) == 11) {
+      n_el++;
+    } else if (abs(pdgId) == 13) {
+      n_mu++;
+    } else if (abs(pdgId) == 321 || abs(pdgId) == 311 || abs(pdgId) == 130 || abs(pdgId) == 310) {
+      n_kaons++;
     }
   }
-  if (n_charged_pions == 1 && n_neutral_pions == 0 && n_leptons == 0) {
+  if (n_charged_pions == 1 && n_neutral_pions == 0 && n_el == 0 && n_mu == 0 && n_kaons == 0) {
     return TauDecayCategory::SinglePi;
-  } else if (n_charged_pions == 1 && n_neutral_pions == 1 && n_leptons == 0) {
+  } else if (n_charged_pions == 1 && n_neutral_pions == 1 && n_el == 0 && n_mu == 0 && n_kaons == 0) {
     return TauDecayCategory::Rho;
-  } else if (n_leptons == 1 && n_charged_pions == 0) {
-    return TauDecayCategory::Lep;
+  } else if (n_el==1 && n_mu==0 && n_charged_pions==0 && n_neutral_pions==0 && n_kaons==0) {
+    return TauDecayCategory::El;
+  } else if (n_el==0 && n_mu==1 && n_charged_pions==0 && n_neutral_pions==0 && n_kaons==0) {
+    return TauDecayCategory::Mu;
   } else {
     return TauDecayCategory::Others;
   }
@@ -325,7 +339,7 @@ int categorize_tau_decay(const RVec<short>& decay_products_pdgId, int idx_start,
 
 int categorize_event(const RVec<short>& truth_pdgId) {
   int event_category = 0;
-  // truth_pdgId is distributed as: x,x,...,15,...,-15,(22),16,Products of tau-,-16,Products of tau+
+  // truth_pdgId is distributed as: x,x,...,15,-15,(22),16,Products of tau-,-16,Products of tau+
   // Find tau+ and tau-
   int num_tau_plus = 0, num_tau_minus = 0;
   int idx_start_tau_minus = -1, idx_end_tau_minus = -1, idx_start_tau_plus = -1, idx_end_tau_plus = -1;

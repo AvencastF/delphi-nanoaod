@@ -700,20 +700,20 @@ void NanoAODWriter::defineElid(std::unique_ptr<RNTupleModel> &model)
     MakeField(model, "Elid_px", "Best electron px estimation", Elid_px_);
     MakeField(model, "Elid_py", "Best electron py estimation", Elid_py_);
     MakeField(model, "Elid_pz", "Best electron pz estimation", Elid_pz_);
-    MakeField(model, "Elou_eOverP", "QELOU(1): E_shower/P_track", Elou_eOverP_);
-    MakeField(model, "Elou_deltaZHpc", "QELOU(2): Z(extrapolation)-Z(HPC)", Elou_deltaZHpc_);
-    MakeField(model, "Elou_deltaPhiDirectionHpc", "QELOU(3): phi direction mismatch to HPC", Elou_deltaPhiDirectionHpc_);
-    MakeField(model, "Elou_deltaPhiPositionHpc", "QELOU(4): phi position mismatch to HPC", Elou_deltaPhiPositionHpc_);
-    MakeField(model, "Elou_dedxMeasurement", "QELOU(5): dE/dX measurement", Elou_dedxMeasurement_);
-    MakeField(model, "Elou_dedxMeasurementError", "QELOU(6): error on dE/dX measurement", Elou_dedxMeasurementError_);
-    MakeField(model, "Elou_dedxNumTpcWires", "QELOU(7): number of TPC wires from dE/dX", Elou_dedxNumTpcWires_);
-    MakeField(model, "Elou_probFromEOverP", "QELOU(8): probability from E/P", Elou_probFromEOverP_);
-    MakeField(model, "Elou_probFromShowerFit", "QELOU(9): probability from shower fit", Elou_probFromShowerFit_);
-    MakeField(model, "Elou_probFromDeltaZHpc", "QELOU(10): probability from Z(TPC)-Z(HPC)", Elou_probFromDeltaZHpc_);
-    MakeField(model, "Elou_probFromDeltaPhiDirectionHpc", "QELOU(11): probability from phi direction mismatch", Elou_probFromDeltaPhiDirectionHpc_);
-    MakeField(model, "Elou_probFromDedxElectron", "QELOU(12): probability from dE/dX for electron", Elou_probFromDedxElectron_);
-    MakeField(model, "Elou_probFromDedxPion", "QELOU(13): probability from dE/dX for pion", Elou_probFromDedxPion_);
-    MakeField(model, "Elou_hpcElectronProbability", "QELOU(14): electron probability from HPC", Elou_hpcElectronProbability_);
+    // MakeField(model, "Elou_eOverP", "QELOU(1): E_shower/P_track", Elou_eOverP_);
+    // MakeField(model, "Elou_deltaZHpc", "QELOU(2): Z(extrapolation)-Z(HPC)", Elou_deltaZHpc_);
+    // MakeField(model, "Elou_deltaPhiDirectionHpc", "QELOU(3): phi direction mismatch to HPC", Elou_deltaPhiDirectionHpc_);
+    // MakeField(model, "Elou_deltaPhiPositionHpc", "QELOU(4): phi position mismatch to HPC", Elou_deltaPhiPositionHpc_);
+    // MakeField(model, "Elou_dedxMeasurement", "QELOU(5): dE/dX measurement", Elou_dedxMeasurement_);
+    // MakeField(model, "Elou_dedxMeasurementError", "QELOU(6): error on dE/dX measurement", Elou_dedxMeasurementError_);
+    // MakeField(model, "Elou_dedxNumTpcWires", "QELOU(7): number of TPC wires from dE/dX", Elou_dedxNumTpcWires_);
+    // MakeField(model, "Elou_probFromEOverP", "QELOU(8): probability from E/P", Elou_probFromEOverP_);
+    // MakeField(model, "Elou_probFromShowerFit", "QELOU(9): probability from shower fit", Elou_probFromShowerFit_);
+    // MakeField(model, "Elou_probFromDeltaZHpc", "QELOU(10): probability from Z(TPC)-Z(HPC)", Elou_probFromDeltaZHpc_);
+    // MakeField(model, "Elou_probFromDeltaPhiDirectionHpc", "QELOU(11): probability from phi direction mismatch", Elou_probFromDeltaPhiDirectionHpc_);
+    // MakeField(model, "Elou_probFromDedxElectron", "QELOU(12): probability from dE/dX for electron", Elou_probFromDedxElectron_);
+    // MakeField(model, "Elou_probFromDedxPion", "QELOU(13): probability from dE/dX for pion", Elou_probFromDedxPion_);
+    // MakeField(model, "Elou_hpcElectronProbability", "QELOU(14): electron probability from HPC", Elou_hpcElectronProbability_);
 }
 
 void NanoAODWriter::fillElid()
@@ -724,20 +724,20 @@ void NanoAODWriter::fillElid()
     Elid_px_->clear();
     Elid_py_->clear();
     Elid_pz_->clear();
-    Elou_eOverP_->clear();
-    Elou_deltaZHpc_->clear();
-    Elou_deltaPhiDirectionHpc_->clear();
-    Elou_deltaPhiPositionHpc_->clear();
-    Elou_dedxMeasurement_->clear();
-    Elou_dedxMeasurementError_->clear();
-    Elou_dedxNumTpcWires_->clear();
-    Elou_probFromEOverP_->clear();
-    Elou_probFromShowerFit_->clear();
-    Elou_probFromDeltaZHpc_->clear();
-    Elou_probFromDeltaPhiDirectionHpc_->clear();
-    Elou_probFromDedxElectron_->clear();
-    Elou_probFromDedxPion_->clear();
-    Elou_hpcElectronProbability_->clear();
+    // Elou_eOverP_->clear();
+    // Elou_deltaZHpc_->clear();
+    // Elou_deltaPhiDirectionHpc_->clear();
+    // Elou_deltaPhiPositionHpc_->clear();
+    // Elou_dedxMeasurement_->clear();
+    // Elou_dedxMeasurementError_->clear();
+    // Elou_dedxNumTpcWires_->clear();
+    // Elou_probFromEOverP_->clear();
+    // Elou_probFromShowerFit_->clear();
+    // Elou_probFromDeltaZHpc_->clear();
+    // Elou_probFromDeltaPhiDirectionHpc_->clear();
+    // Elou_probFromDedxElectron_->clear();
+    // Elou_probFromDedxPion_->clear();
+    // Elou_hpcElectronProbability_->clear();
     for (int i = sk::LVPART; i <= sk::NVECP; i++)
     {
         // if (sk::KELID(1, i) != 0)
@@ -748,20 +748,20 @@ void NanoAODWriter::fillElid()
             Elid_px_->push_back(sk::QELID(3, i));
             Elid_py_->push_back(sk::QELID(4, i));
             Elid_pz_->push_back(sk::QELID(5, i));
-            Elou_eOverP_->push_back(sk::QELOU(1, i));
-            Elou_deltaZHpc_->push_back(sk::QELOU(2, i));
-            Elou_deltaPhiDirectionHpc_->push_back(sk::QELOU(3, i));
-            Elou_deltaPhiPositionHpc_->push_back(sk::QELOU(4, i));
-            Elou_dedxMeasurement_->push_back(sk::QELOU(5, i));
-            Elou_dedxMeasurementError_->push_back(sk::QELOU(6, i));
-            Elou_dedxNumTpcWires_->push_back(sk::QELOU(7, i));
-            Elou_probFromEOverP_->push_back(sk::QELOU(8, i));
-            Elou_probFromShowerFit_->push_back(sk::QELOU(9, i));
-            Elou_probFromDeltaZHpc_->push_back(sk::QELOU(10, i));
-            Elou_probFromDeltaPhiDirectionHpc_->push_back(sk::QELOU(11, i));
-            Elou_probFromDedxElectron_->push_back(sk::QELOU(12, i));
-            Elou_probFromDedxPion_->push_back(sk::QELOU(13, i));
-            Elou_hpcElectronProbability_->push_back(sk::QELOU(14, i));
+            // Elou_eOverP_->push_back(sk::QELOU(1, i));
+            // Elou_deltaZHpc_->push_back(sk::QELOU(2, i));
+            // Elou_deltaPhiDirectionHpc_->push_back(sk::QELOU(3, i));
+            // Elou_deltaPhiPositionHpc_->push_back(sk::QELOU(4, i));
+            // Elou_dedxMeasurement_->push_back(sk::QELOU(5, i));
+            // Elou_dedxMeasurementError_->push_back(sk::QELOU(6, i));
+            // Elou_dedxNumTpcWires_->push_back(sk::QELOU(7, i));
+            // Elou_probFromEOverP_->push_back(sk::QELOU(8, i));
+            // Elou_probFromShowerFit_->push_back(sk::QELOU(9, i));
+            // Elou_probFromDeltaZHpc_->push_back(sk::QELOU(10, i));
+            // Elou_probFromDeltaPhiDirectionHpc_->push_back(sk::QELOU(11, i));
+            // Elou_probFromDedxElectron_->push_back(sk::QELOU(12, i));
+            // Elou_probFromDedxPion_->push_back(sk::QELOU(13, i));
+            // Elou_hpcElectronProbability_->push_back(sk::QELOU(14, i));
         // }
     }
 }
