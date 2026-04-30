@@ -1,4 +1,5 @@
-FROM gitlab-registry.cern.ch/delphi/deployment/delphi/al9_aarch64
+#FROM gitlab-registry.cern.ch/delphi/deployment/delphi/al9_aarch64
+FROM gitlab-registry.cern.ch/delphi/deployment/delphi/al9_64_xrd
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
